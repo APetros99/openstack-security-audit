@@ -1,0 +1,14 @@
+clouds:
+  security-audit:
+    auth:
+      auth_url: http://OPENSTACK_HOST/identity/v3
+      username: security-audit
+      password: CHANGE_ME
+      project_name: service
+      user_domain_name: Default
+      project_domain_name: Default
+    region_name: RegionOne
+    interface: public
+    identity_api_version: 3
+    verify: true
+

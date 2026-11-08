@@ -1,0 +1,21 @@
+[Unit]
+Description=OpenStack Security Audit Collector
+After=network-online.target devstack@keystone.service devstack@n-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=security-audit
+Group=security-audit
+ExecStart=/opt/security-audit/venv/bin/openstack-security-audit --config /etc/security-audit/security-audit.conf daemon
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/security-audit /var/log/security-audit
+
+[Install]
+WantedBy=multi-user.target
+

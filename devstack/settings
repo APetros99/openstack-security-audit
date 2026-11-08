@@ -1,0 +1,6 @@
+# DevStack plugin settings. Override these values in local.conf when necessary.
+SECURITY_AUDIT_DIR=${SECURITY_AUDIT_DIR:-/opt/security-audit}
+SECURITY_AUDIT_CONF_DIR=${SECURITY_AUDIT_CONF_DIR:-/etc/security-audit}
+SECURITY_AUDIT_DATA_DIR=${SECURITY_AUDIT_DATA_DIR:-/var/lib/security-audit}
+SECURITY_AUDIT_LOG_DIR=${SECURITY_AUDIT_LOG_DIR:-/var/log/security-audit}
+

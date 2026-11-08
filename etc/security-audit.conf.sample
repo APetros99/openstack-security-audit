@@ -1,0 +1,17 @@
+[security_audit]
+# clouds.yaml entry used by openstacksdk.
+cloud = devstack-admin
+
+# API polling frequency. The minimum accepted value is 5 seconds.
+poll_interval = 30
+database_path = /var/lib/security-audit/audit.db
+report_dir = /var/lib/security-audit/reports
+log_file = /var/log/security-audit/audit.log
+log_level = INFO
+
+# Optional Apache/Keystone access log. Leave empty to disable access monitoring.
+keystone_access_log = /var/log/apache2/keystone_access.log
+
+# False creates a baseline on first run. True records existing resources as created.
+emit_initial_state = false
+
