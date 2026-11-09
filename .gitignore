@@ -1,0 +1,11 @@
+*.egg-info/
+__pycache__/
+.coverage
+.pytest_cache/
+.tox/
+.venv/
+build/
+dist/
+*.db
+*.log
+reports/
