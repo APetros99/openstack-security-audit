@@ -74,14 +74,20 @@ sudo systemctl status openstack-security-audit
 sudo journalctl -u openstack-security-audit -f
 ```
 
-Se il file Apache non e leggibile dall'utente del servizio, assegnare al gruppo
-`security-audit` il solo accesso in lettura tramite ACL:
+Su DevStack le richieste a Keystone (`/identity`) sono registrate dal virtual
+host di Horizon in `/var/log/apache2/horizon_access.log`, che e il valore di
+default. La directory `/var/log/apache2` e `root:adm 750`: con il plugin
+DevStack le ACL vengono applicate automaticamente; con `install.sh` assegnare
+al gruppo `security-audit` il solo attraversamento della directory e la lettura
+del log (privilegio minimo, invece dell'ingresso nel gruppo `adm`):
 
 ```bash
-sudo setfacl -m g:security-audit:rx /var/log/apache2
-sudo setfacl -m g:security-audit:r /var/log/apache2/keystone_access.log
-sudo setfacl -m d:g:security-audit:r /var/log/apache2
+sudo setfacl -m g:security-audit:x /var/log/apache2
+sudo setfacl -m g:security-audit:r /var/log/apache2/horizon_access.log
+sudo setfacl -d -m g:security-audit:r /var/log/apache2
 ```
+
+La ACL di default mantiene leggibili i file ricreati da logrotate.
 
 Il percorso effettivo dipende dalla configurazione Apache. Trovarlo con:
 
@@ -102,7 +108,7 @@ Inserire in `/opt/stack/devstack/local.conf`, adattando l'URL Git:
 
 ```ini
 [[local|localrc]]
-enable_plugin security-audit https://github.com/USER/openstack-security-audit.git main
+enable_plugin security-audit https://github.com/APetros99/openstack-security-audit.git main
 enable_service security-audit
 ```
 
@@ -136,8 +142,13 @@ source /opt/stack/devstack/openrc admin admin
 ```
 
 Lo script crea un'istanza CirrOS e una security group, esegue il collector,
-elimina le risorse e genera un report. Usare nomi di image, flavor e network
-diversi nello script se DevStack non espone `cirros`, `m1.tiny` e `private`.
+elimina le risorse e genera un report. Image, flavor e network sono
+configurabili tramite variabili d'ambiente (default
+`cirros-0.6.3-x86_64-disk`, `m1.tiny`, `private`), ad esempio:
+
+```bash
+IMAGE=$(openstack image list -f value -c Name | grep cirros | head -1) ./tools/smoke_test.sh
+```
 
 ## Comandi
 

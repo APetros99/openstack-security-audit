@@ -3,13 +3,16 @@ set -euo pipefail
 
 CONFIG=${CONFIG:-/etc/security-audit/security-audit.conf}
 AUDIT=${AUDIT:-/opt/security-audit/venv/bin/openstack-security-audit}
+IMAGE=${IMAGE:-cirros-0.6.3-x86_64-disk}
+FLAVOR=${FLAVOR:-m1.tiny}
+NETWORK=${NETWORK:-private}
 NAME="security-audit-test-$(date +%s)"
 
 echo "1. Creating collector baseline"
 sudo -u security-audit "$AUDIT" --config "$CONFIG" collect-once
 
 echo "2. Creating a Nova instance"
-openstack server create --image cirros --flavor m1.tiny --network private "$NAME"
+openstack server create --image "$IMAGE" --flavor "$FLAVOR" --network "$NETWORK" "$NAME"
 
 echo "3. Creating a Neutron security group"
 SG_ID=$(openstack security group create -f value -c id "$NAME")

@@ -3,6 +3,7 @@
 # DevStack plugin lifecycle for OpenStack Security Audit.
 
 function install_security_audit {
+    install_package acl rsync
     sudo mkdir -p "$SECURITY_AUDIT_DIR"
     sudo rsync -a --delete --exclude '.git' "$SECURITY_AUDIT_PLUGIN_DIR/" "$SECURITY_AUDIT_DIR/"
     sudo python3 -m venv "$SECURITY_AUDIT_DIR/venv"
@@ -20,6 +21,8 @@ function configure_security_audit {
     sudo install -m 0640 -o root -g security-audit \
         "$SECURITY_AUDIT_DIR/etc/security-audit.conf.sample" \
         "$SECURITY_AUDIT_CONF_DIR/security-audit.conf"
+    iniset -sudo "$SECURITY_AUDIT_CONF_DIR/security-audit.conf" security_audit \
+        keystone_access_log "$SECURITY_AUDIT_KEYSTONE_LOG"
 
     # DevStack generates a clouds.yaml containing the devstack-admin entry.
     sudo mkdir -p /var/lib/security-audit/.config/openstack
@@ -32,6 +35,22 @@ function configure_security_audit {
     sudo install -m 0644 "$SECURITY_AUDIT_DIR/etc/logrotate/security-audit" \
         /etc/logrotate.d/security-audit
     sudo systemctl daemon-reload
+    configure_log_access_security_audit
+}
+
+# Least privilege: the service group may traverse the Apache log directory and
+# read only its log files, instead of joining the "adm" group (all system logs).
+# The default ACL keeps files recreated by logrotate readable.
+function configure_log_access_security_audit {
+    [[ -n "$SECURITY_AUDIT_KEYSTONE_LOG" ]] || return 0
+    local log_dir
+    log_dir=$(dirname "$SECURITY_AUDIT_KEYSTONE_LOG")
+    sudo mkdir -p "$log_dir"
+    sudo setfacl -m g:security-audit:x "$log_dir"
+    sudo setfacl -d -m g:security-audit:r "$log_dir"
+    if [[ -f "$SECURITY_AUDIT_KEYSTONE_LOG" ]]; then
+        sudo setfacl -m g:security-audit:r "$SECURITY_AUDIT_KEYSTONE_LOG"
+    fi
 }
 
 function start_security_audit {
@@ -45,6 +64,13 @@ function stop_security_audit {
 }
 
 function cleanup_security_audit {
+    if [[ -n "$SECURITY_AUDIT_KEYSTONE_LOG" ]]; then
+        local log_dir
+        log_dir=$(dirname "$SECURITY_AUDIT_KEYSTONE_LOG")
+        sudo setfacl -x g:security-audit "$log_dir" 2>/dev/null || true
+        sudo setfacl -d -x g:security-audit "$log_dir" 2>/dev/null || true
+        sudo setfacl -x g:security-audit "$SECURITY_AUDIT_KEYSTONE_LOG" 2>/dev/null || true
+    fi
     sudo rm -f /etc/systemd/system/openstack-security-audit.service
     sudo rm -f /etc/logrotate.d/security-audit
     sudo systemctl daemon-reload

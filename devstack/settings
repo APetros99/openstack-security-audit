@@ -1,6 +1,11 @@
 # DevStack plugin settings. Override these values in local.conf when necessary.
+define_plugin security-audit
+
 SECURITY_AUDIT_DIR=${SECURITY_AUDIT_DIR:-/opt/security-audit}
 SECURITY_AUDIT_CONF_DIR=${SECURITY_AUDIT_CONF_DIR:-/etc/security-audit}
 SECURITY_AUDIT_DATA_DIR=${SECURITY_AUDIT_DATA_DIR:-/var/lib/security-audit}
 SECURITY_AUDIT_LOG_DIR=${SECURITY_AUDIT_LOG_DIR:-/var/log/security-audit}
 
+# Apache log with Keystone token requests. On DevStack the Horizon virtual
+# host logs all port-80 traffic, /identity included. Empty disables it.
+SECURITY_AUDIT_KEYSTONE_LOG=${SECURITY_AUDIT_KEYSTONE_LOG-/var/log/apache2/horizon_access.log}
